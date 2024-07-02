@@ -1,30 +1,41 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WebshopApi.Data;
+using WebshopApi.Models;
 using WebshopApi.Repos;
 
 var builder = WebApplication.CreateBuilder(args);
+var config = builder.Configuration;
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var connection = String.Empty;
+var connectionString = String.Empty;
 if (builder.Environment.IsDevelopment())
 {
-    connection = builder.Configuration["mySqlConnectionString"];
+    connectionString = config["mySqlConnectionString"];
 }
 else
 {
-    connection = Environment.GetEnvironmentVariable("MYSQL_CONNECTION_STRING");
+    connectionString = Environment.GetEnvironmentVariable("MYSQL_CONNECTION_STRING");
 }
+ArgumentException.ThrowIfNullOrEmpty(connectionString);
 
-builder.Services.AddDbContext<ApplicationDBContext>(options =>
-{
-    _ = options.UseMySQL(connection);
-}
+builder.Services.AddDbContext<ApplicationDBContext>(options => options.UseMySQL(connectionString));
+builder.Services.AddIdentityCore<AppUser>()
+    .AddEntityFrameworkStores<ApplicationDBContext>()
+    .AddApiEndpoints();
 
-);
+
+// Add authentication and authorization
+builder.Services.AddAuthentication()
+    .AddBearerToken(IdentityConstants.BearerScheme);
+
+builder.Services.AddAuthorizationBuilder();
+
+// Add repository services
 builder.Services.AddScoped<ProductsRepository>();
 
 
@@ -38,9 +49,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-
-
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapIdentityApi<AppUser>();
 
 app.MapControllers();
 
