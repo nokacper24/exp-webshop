@@ -17,8 +17,8 @@ namespace WebshopApi.Controllers
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
-            var producsts = await productsRepo.GetAllAsync();
-            return Ok(producsts);
+            var products = await productsRepo.GetAllAsync();
+            return Ok(products);
         }
 
         [HttpGet("{id:int}")]
