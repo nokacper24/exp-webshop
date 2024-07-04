@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebshopApi.Repos;
 
@@ -15,6 +16,7 @@ namespace WebshopApi.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult> GetAll()
         {
             var products = await productsRepo.GetAllAsync();
