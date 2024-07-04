@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WebshopApi.Data;
@@ -24,16 +25,18 @@ else
 ArgumentException.ThrowIfNullOrEmpty(connectionString);
 
 builder.Services.AddDbContext<ApplicationDBContext>(options => options.UseMySQL(connectionString));
-builder.Services.AddIdentityCore<AppUser>()
-    .AddEntityFrameworkStores<ApplicationDBContext>()
-    .AddApiEndpoints();
 
 
-// Add authentication and authorization
-builder.Services.AddAuthentication()
-    .AddBearerToken(IdentityConstants.BearerScheme);
 
-builder.Services.AddAuthorizationBuilder();
+// Following microsoft learn page on securing web APIs for SPAs
+// https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity-api-authorization?view=aspnetcore-8.0
+
+// add identiy services
+builder.Services.AddAuthorization();
+
+// activate identity APIs
+builder.Services.AddIdentityApiEndpoints<AppUser>()
+    .AddEntityFrameworkStores<ApplicationDBContext>();
 
 // Add repository services
 builder.Services.AddScoped<ProductsRepository>();
@@ -49,9 +52,22 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
+
+// map identity routes
 app.MapIdentityApi<AppUser>();
+// add logout endpoint
+app.MapPost("/logout",
+    async (SignInManager<AppUser> signInManager, [FromBody] object empty) =>
+{
+    if (empty != null)
+    {
+        await signInManager.SignOutAsync();
+        return Results.Ok();
+    }
+    return Results.Unauthorized();
+})
+.WithOpenApi()
+.RequireAuthorization();
 
 app.MapControllers();
 
