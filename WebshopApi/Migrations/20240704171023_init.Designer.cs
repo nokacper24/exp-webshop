@@ -11,7 +11,7 @@ using WebshopApi.Data;
 namespace WebshopApi.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20240702091713_init")]
+    [Migration("20240704171023_init")]
     partial class init
     {
         /// <inheritdoc />
