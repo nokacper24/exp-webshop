@@ -8,8 +8,7 @@ namespace WebshopApi.Data
     {
         public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options)
         : base(options)
-        {
-        }
+        { }
 
         public DbSet<Product> Products { get; set; }
     }
