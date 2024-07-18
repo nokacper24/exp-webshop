@@ -11,6 +11,24 @@ namespace WebshopApi.Data
         { }
 
         public DbSet<Product> Products { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.Entity<Product>().HasData(new Product
+            {
+                Id = 1,
+                Name = "Sample prouct 1",
+                Price = 100
+            },
+            new Product
+            {
+                Id = 2,
+                Name = "Sample prouct 2",
+                Price = 50
+            }
+            );
+            base.OnModelCreating(builder);
+        }
     }
 
 }
