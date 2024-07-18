@@ -44,6 +44,13 @@ builder.Services.AddScoped<ProductsRepository>();
 
 var app = builder.Build();
 
+if (builder.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDBContext>();
+    await db.Database.MigrateAsync();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
