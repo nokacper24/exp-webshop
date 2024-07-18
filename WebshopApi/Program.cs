@@ -36,6 +36,7 @@ builder.Services.AddAuthorization();
 
 // activate identity APIs
 builder.Services.AddIdentityApiEndpoints<AppUser>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDBContext>();
 
 // Add repository services
@@ -49,6 +50,20 @@ if (builder.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDBContext>();
     await db.Database.MigrateAsync();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    string[] roles = ["Admin"];
+    foreach (var rolename in roles)
+    {
+        var exists = await roleManager.RoleExistsAsync(rolename);
+        if (!exists)
+        {
+            await roleManager.CreateAsync(new IdentityRole(rolename));
+        }
+    }
 }
 
 // Configure the HTTP request pipeline.
