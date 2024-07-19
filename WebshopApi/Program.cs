@@ -1,3 +1,4 @@
+using System.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -63,6 +64,38 @@ using (var scope = app.Services.CreateScope())
         {
             await roleManager.CreateAsync(new IdentityRole(rolename));
         }
+    }
+}
+
+if (builder.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+
+    var adminEmail = config["Creds:DevAdmin:Email"];
+    var adminPassword = config["Creds:DevAdmin:Password"];
+    if (adminEmail.IsNullOrEmpty() || adminPassword.IsNullOrEmpty())
+    {
+        throw new SecurityException("Could not find admin email or password");
+    }
+
+    var user = await userManager.FindByEmailAsync(adminEmail!);
+    if (user == null)
+    {
+        user = new AppUser
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            EmailConfirmed = true,
+        };
+        var result = await userManager.CreateAsync(user, adminPassword!);
+
+        if (!result.Succeeded)
+        {
+            throw new SecurityException("Error creating dev admin user: ");
+        }
+
+        await userManager.AddToRoleAsync(user, "Admin");
     }
 }
 
